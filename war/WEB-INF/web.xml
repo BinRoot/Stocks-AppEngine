@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://java.sun.com/xml/ns/javaee"
+xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	<servlet>
+		<servlet-name>StocksApp</servlet-name>
+		<servlet-class>com.binroot.stocks.StocksAppServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>StocksApp</servlet-name>
+		<url-pattern>/stocksapp</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>UserApp</servlet-name>
+		<servlet-class>com.binroot.stocks.UserServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>UserApp</servlet-name>
+		<url-pattern>/user</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>ConfigApp</servlet-name>
+		<servlet-class>com.binroot.stocks.ConfigServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ConfigApp</servlet-name>
+		<url-pattern>/config</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>StockApp</servlet-name>
+		<servlet-class>com.binroot.stocks.StockServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>StockApp</servlet-name>
+		<url-pattern>/stock</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>BuyApp</servlet-name>
+		<servlet-class>com.binroot.stocks.BuyServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>BuyApp</servlet-name>
+		<url-pattern>/buy</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>SellApp</servlet-name>
+		<servlet-class>com.binroot.stocks.SellServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SellApp</servlet-name>
+		<url-pattern>/sell</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>PingApp</servlet-name>
+		<servlet-class>com.binroot.stocks.PingServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PingApp</servlet-name>
+		<url-pattern>/ping</url-pattern>
+	</servlet-mapping>
+	
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+</web-app>
