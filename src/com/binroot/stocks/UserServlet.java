@@ -14,6 +14,11 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 
+/**
+ * POST /user?id=FB1234&name=Nishy
+ * @author Nishant
+ *
+ */
 @SuppressWarnings("serial")
 public class UserServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

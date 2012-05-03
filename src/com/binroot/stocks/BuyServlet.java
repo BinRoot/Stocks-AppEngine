@@ -68,7 +68,7 @@ public class BuyServlet extends HttpServlet {
 			
 			// connect history entity to stock
 			String stockHistList = (String) stockEnt.getProperty("historyList");
-			stockHistList = histId +""+ stockHistList;
+			stockHistList = histId +";"+ stockHistList;
 			stockEnt.setProperty("historyList", stockHistList);
 			
 			// update user credits and stock numShares
@@ -93,7 +93,7 @@ public class BuyServlet extends HttpServlet {
 				// convert that array to string with ; and save to Entity
 				stockList = "";
 				for(int i=0; i<stockListArr.length-1; i+=2) {
-					stockList += stockListArr[i] +";"+stockListArr[i+1]+";";
+					stockList = stockListArr[i] +";"+stockListArr[i+1]+";" + stockList;
 				}
 			}
 			userEnt.setProperty("stockList", stockList);
@@ -101,7 +101,7 @@ public class BuyServlet extends HttpServlet {
 			// update stock's shareholder list
 			if(!containsShareHolder(userId, stockEnt)) { 
 				String userIdList = (String) stockEnt.getProperty("shareHolderList");
-				stockEnt.setProperty("shareHolderList", userIdList+";"+userId);
+				stockEnt.setProperty("shareHolderList", userId+";"+userIdList);
 			}
 			
 			

@@ -14,6 +14,11 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 
+/**
+ * POST /stock?op=c&name=iPhone&desc=blah&initial=33
+ * @author Nishant
+ *
+ */
 @SuppressWarnings("serial")
 public class StockServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -55,7 +60,7 @@ public class StockServlet extends HttpServlet {
 			stockEntity.setProperty("name", name);
 			stockEntity.setProperty("desc", desc);
 			stockEntity.setProperty("initial", initial);
-			stockEntity.setProperty("openingDayVal", hour);
+			stockEntity.setProperty("openingDayVal", initial);
 			stockEntity.setProperty("currentHourVal", currentHourVal);
 			stockEntity.setProperty("lastTransaction", Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTime());
 			stockEntity.setProperty("shareHolderList", shareHolderList);

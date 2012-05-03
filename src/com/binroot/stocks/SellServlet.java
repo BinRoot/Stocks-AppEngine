@@ -1,7 +1,6 @@
 package com.binroot.stocks;
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServlet;
@@ -11,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 
@@ -83,7 +83,8 @@ public class SellServlet extends HttpServlet {
 			long sells = (Long)stockEnt.getProperty("sells");
 			stockEnt.setProperty("sells", sells+1);
 			
-			ds.put(stockEnt);
+			Key stockKey = ds.put(stockEnt);
+			System.out.println("stockKey: "+stockKey.getId());
 			ds.put(userEnt);
 			resp.getWriter().write("0: Success!");
 		}
@@ -146,17 +147,27 @@ public class SellServlet extends HttpServlet {
 	}
 	
 	public boolean updateUserShares(Entity userEnt, Entity stockEnt, int sharesSelling) {
-		String userId = (String) userEnt.getProperty("userId");
+		String userId = (String) userEnt.getProperty("id");
 		long stockId = (Long) stockEnt.getProperty("id");
 		String stockList = (String) userEnt.getProperty("stockList");
 		String [] stockListArr = stockList.split(";");
 		
+		System.out.println("in updateUserShares: "+userId+", "+stockId+", "+stockList);
+	
+		if(stockList.equals("")) {
+			return false;
+		}
+		
 		// compute net shares owned after sell
 		for(int i=0; i<stockListArr.length-1; i+=2) {
 			long stockIdA = Long.parseLong(stockListArr[i]);
+			System.out.println(stockId+"=?="+stockIdA+", "+(stockId==stockIdA));
 			if(stockId==stockIdA) {
 				int sharesOwned = Integer.parseInt(stockListArr[i+1]);
 				int netSharesOwned = sharesOwned - sharesSelling;
+				
+				System.out.println("netSharesOwned: "+netSharesOwned);
+				
 				if(netSharesOwned<0) {
 					return false;
 				}
@@ -170,6 +181,9 @@ public class SellServlet extends HttpServlet {
 		// update newly built stockList
 		stockList = "";
 		for(int i=0; i<stockListArr.length-1; i+=2) {
+			
+			System.out.println(Long.parseLong(stockListArr[i+1])+"=??="+0+", "+(Long.parseLong(stockListArr[i+1])==0));
+			
 			if(Long.parseLong(stockListArr[i+1])==0) {
 				
 				// remove user from stocklist
@@ -177,21 +191,26 @@ public class SellServlet extends HttpServlet {
 				String []shareHolderListArr = shareHolderList.split(";");
 				String shareHolderListOut = "";
 				for(int j=0; j<shareHolderListArr.length; j++) {
-					String userIdA = (String) shareHolderListArr[j];
+					String userIdA = (shareHolderListArr[j]);
+					System.out.println(userIdA+"=???="+userId+", "+(userIdA.equals(userId)));
 					if(userIdA.equals(userId)) {
 						continue;
 					}
 					shareHolderListOut = userIdA+";"+shareHolderListOut;
 				}
 				
-				stockEnt.setProperty("shareHolderList", shareHolderListOut.replace(";;", ""));
+				stockEnt.setProperty("shareHolderList", shareHolderListOut);
+				
+				System.out.println("created new shareHolderList: "+shareHolderListOut);
 				
 				continue;
 			}
 			stockList = stockListArr[i] +";"+stockListArr[i+1]+";" + stockList;
 		}
 		
-		userEnt.setProperty("stockList", stockList);
+		System.out.println("created new stockList: "+stockList);
+		
+		userEnt.setProperty("stockList", stockList); // THIS MIGHT BE THE PROBLEM!
 		
 		return true;
 				

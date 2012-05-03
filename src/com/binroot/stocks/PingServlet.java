@@ -30,16 +30,113 @@ public class PingServlet extends HttpServlet {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		
 		Entity stockEnt = getStockEntity(ds, stockId);
-		//Entity configEnt = getConfigEntity(ds);
 		
-		String hourlyPointList = (String)stockEnt.getProperty("hourlyPointList");
-		String hourlyPointListArr[] = hourlyPointList.split(";");
-		for(int i=0; i<hourlyPointListArr.length-1; i+=2) {
-			String hour = hourlyPointListArr[0];
-			String val = hourlyPointListArr[1];
-			System.out.println("("+hour+", "+val+")");
+		Date lastTransaction = (Date)stockEnt.getProperty("lastTransaction");
+		Date nowDate = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTime();
+		long currentHourVal = (Long)stockEnt.getProperty("currentHourVal");
+		double trend = (Double)stockEnt.getProperty("trend");
+		long buys = (Long)stockEnt.getProperty("buys");
+		long sells = (Long)stockEnt.getProperty("sells");
+		
+		System.out.println("lastTransaction: "+lastTransaction.getTime());
+		System.out.println("nowDate: "+nowDate.getTime());
+
+		int hourFactor = 1000 * 60 * 60;
+		while(lastTransaction.getTime()/hourFactor != nowDate.getTime()/hourFactor) {
+			//System.out.println("time: "+lastTransaction.getHours());
+			
+			// shift right agnostically from trend and last hour
+			int nextHour = lastTransaction.getHours()+1;
+			long nextHourVal = computeNextHourVal(currentHourVal, trend);
+			trend = computeNextTrend(buys, sells, currentHourVal);
+			
+			if(nextHour>=24) { // at next day
+				// update day point list
+				updateDailyPointList(stockEnt, nextHourVal);
+				
+				// clear hour point list
+				clearHourlyPointList(stockEnt);
+				updateHourlyPointList(stockEnt, 0, nextHourVal);
+				stockEnt.setProperty("openingDayVal", nextHourVal);
+			}
+			else {
+				updateHourlyPointList(stockEnt, nextHour, nextHourVal);
+			}
+			
+			// clear buys and sells
+			buys = 0;
+			sells = 0;
+			
+			currentHourVal = nextHourVal;
+			lastTransaction.setTime(lastTransaction.getTime()+hourFactor);
 		}
 		
+		stockEnt.setProperty("currentHourVal", currentHourVal);
+		
+		resetBuysSells(stockEnt);
+		stockEnt.setProperty("lastTransaction", lastTransaction);
+		
+		printHourlyPointList(stockEnt);	
+		printDailyPointList(stockEnt);
+		
+		ds.put(stockEnt);
+	}
+	
+	public void printHourlyPointList(Entity stockEnt) {
+		String hourlyPointList = (String)stockEnt.getProperty("hourlyPointList");
+		System.out.println("hourlyPointList: "+hourlyPointList);
+	}
+	
+	public void printDailyPointList(Entity stockEnt) {
+		String dailyPointList = (String)stockEnt.getProperty("dailyPointList");
+		System.out.println("dailyPointList: "+dailyPointList);
+	}
+	
+	public void updateHourlyPointList(Entity stockEnt, long nextHour, long nextHourVal) {
+		String hourlyPointList = (String)stockEnt.getProperty("hourlyPointList");
+		hourlyPointList = hourlyPointList + nextHour + ";" + nextHourVal +";";
+		stockEnt.setProperty("hourlyPointList", hourlyPointList);
+	}
+	
+	public void resetBuysSells(Entity stockEnt) {
+		stockEnt.setProperty("buys", 0);
+		stockEnt.setProperty("sells", 0);
+	}
+	
+	public void updateDailyPointList(Entity stockEnt, long nextHourVal) {
+		String dailyPointList = (String)stockEnt.getProperty("dailyPointList");
+		
+		String [] dailyPointListArr = dailyPointList.split(";");
+		
+		long newDay = 0;
+		if(dailyPointListArr.length-2 > 0) {
+			long oldDay = Long.parseLong(dailyPointListArr[dailyPointListArr.length-2]);
+			newDay = oldDay+1;
+		}
+		
+		dailyPointList = dailyPointList + ";" + newDay + ";" +nextHourVal;
+		stockEnt.setProperty("dailyPointList", dailyPointList);
+	}
+	
+	public void clearHourlyPointList(Entity stockEnt) {
+		stockEnt.setProperty("hourlyPointList", "");
+	}
+	
+	public long computeNextHourVal(long currentHourVal, double trend) {
+		return (long) (currentHourVal + trend);
+	}
+	
+	public double computeNextTrend(long buys, long sells, long currentHourVal) {
+		long volume = buys+sells;
+		long diff = buys-sells;
+
+		// System.out.println("b="+buys+", s="+sells+", c="+currentHourVal);
+		
+		double trendOut = (diff*Math.log(volume+1)/Math.log(currentHourVal) );
+		
+		// System.out.println("trend: "+trendOut);
+		
+		return trendOut;
 	}
 	
 	public Entity getStockEntity(DatastoreService ds, long stockId) {
