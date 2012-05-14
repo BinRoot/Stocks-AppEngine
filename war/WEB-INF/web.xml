@@ -67,6 +67,24 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<url-pattern>/ping</url-pattern>
 	</servlet-mapping>
 	
+	<servlet>
+		<servlet-name>LeaderboardApp</servlet-name>
+		<servlet-class>com.binroot.stocks.LeaderboardServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LeaderboardApp</servlet-name>
+		<url-pattern>/leaderboard</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>FriendApp</servlet-name>
+		<servlet-class>com.binroot.stocks.FriendServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FriendApp</servlet-name>
+		<url-pattern>/friend</url-pattern>
+	</servlet-mapping>
+	
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>

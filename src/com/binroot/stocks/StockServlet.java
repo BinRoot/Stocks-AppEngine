@@ -1,5 +1,6 @@
 package com.binroot.stocks;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -13,6 +14,8 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * POST /stock?op=c&name=iPhone&desc=blah&initial=33
@@ -76,17 +79,43 @@ public class StockServlet extends HttpServlet {
 		else if(operation.equals("r")) { // r = read
 			String userId = (String) req.getParameter("id");
 			Entity userEntity = getUserEntity(ds, userId);
+			
+			Gson gst = new Gson();
+			
+			String masterJSON = "{data:[";
+			
 			if(userEntity!=null) {
 				String stockList = (String) userEntity.getProperty("stockList");
 				String[] stockListArr = stockList.split(";");
 				for(int i=0; i<stockListArr.length; i+=2) {
-					String stockL = stockListArr[i];
-					String numSharesL = stockListArr[i+1];
+					long stockL = Long.parseLong(stockListArr[i]);
+					long numSharesL = Long.parseLong(stockListArr[i+1]);
 					// print out
-					resp.getWriter().append("("+stockL+", "+ numSharesL+") ");
+					//resp.getWriter().append("("+stockL+", "+ numSharesL+") ");
 
+					BagOfInfo bgi = new BagOfInfo();
+					Entity stockEnt = getStockEntity(ds, stockL);
+					String name = (String) stockEnt.getProperty("name");
+					long currentHourVal = (Long) stockEnt.getProperty("currentHourVal");
+					String hourlyPointList = (String) stockEnt.getProperty("hourlyPointList");
+					long zeroHourVal = Long.parseLong(hourlyPointList.split(";")[1]);
+					double trend = (Double) stockEnt.getProperty("trend");
+					String picture = (String) stockEnt.getProperty("picture");
+
+					bgi.name = name;
+					bgi.currentHourVal = currentHourVal;
+					bgi.zeroHourVal = zeroHourVal;
+					bgi.numShares = numSharesL;
+					bgi.trend = trend;
+					bgi.picture = picture;
+					
+					masterJSON = masterJSON + gst.toJson(bgi) +", ";
 				}
+				masterJSON = masterJSON + "{}]}";
 			}
+			
+			
+			resp.getWriter().append(masterJSON);
 		}
 
 	}
@@ -110,4 +139,29 @@ public class StockServlet extends HttpServlet {
 		}
 		return null;
 	}
+	
+	public Entity getStockEntity(DatastoreService ds, long stockId) {
+		System.out.println("searching for stock "+stockId);
+		Query q = new Query("Stock");
+		PreparedQuery pq = ds.prepare(q);
+		for(Entity e : pq.asIterable()) {
+			System.out.println("found "+e.getProperty("id"));
+			if(((Long)e.getProperty("id"))==stockId) {
+				return e;
+			}
+		}
+		System.out.println("failed to find "+stockId);
+		return null;
+	}
+	
+	class BagOfInfo {
+		public String name;
+		public long currentHourVal;
+		public long zeroHourVal;
+		public long numShares;
+		public double trend;
+		public String picture;
+	}
 }
+
+

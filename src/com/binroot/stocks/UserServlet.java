@@ -1,7 +1,6 @@
 package com.binroot.stocks;
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServlet;
@@ -13,6 +12,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.gson.Gson;
 
 /**
  * POST /user?id=FB1234&name=Nishy
@@ -47,7 +47,8 @@ public class UserServlet extends HttpServlet {
 			ds.put(e);
 		}
 		else {
-			Long credits = Long.parseLong(req.getParameter("credits"));
+			
+			String credits = req.getParameter("credits");
 			String stockList = req.getParameter("stockList");
 			boolean modified = false;
 			if(id!=null) {
@@ -59,7 +60,7 @@ public class UserServlet extends HttpServlet {
 				modified = true;
 			}
 			if(credits!=null) {
-				ue.setProperty("credits", credits);
+				ue.setProperty("credits", Long.parseLong(credits));
 				modified = true;
 			}
 			if(stockList!=null) {
@@ -71,7 +72,11 @@ public class UserServlet extends HttpServlet {
 				ds.put(ue);
 			
 			// output credits, stockList, badges
-			resp.getWriter().append(ue.getProperty("credits")+", "+ue.getProperty("stockList")+", "+ue.getProperty("historyList"));
+			long creditsL = (Long) ue.getProperty("credits");
+			Gson gs = new Gson();
+			resp.getWriter().write(gs.toJson(creditsL));
+			
+			
 		}
 	}
 	

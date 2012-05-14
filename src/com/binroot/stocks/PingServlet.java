@@ -13,10 +13,13 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 /**
- * POST /sell?userId=FB1234&stockId=0&numShares=2&shareVal=3
- *
+ * POST /ping?stockId=0
+ * Server reply: 
  */
 @SuppressWarnings("serial")
 public class PingServlet extends HttpServlet {
@@ -72,7 +75,7 @@ public class PingServlet extends HttpServlet {
 		}
 		
 		stockEnt.setProperty("currentHourVal", currentHourVal);
-		
+		stockEnt.setProperty("trend", trend);
 		resetBuysSells(stockEnt);
 		stockEnt.setProperty("lastTransaction", lastTransaction);
 		
@@ -80,6 +83,15 @@ public class PingServlet extends HttpServlet {
 		printDailyPointList(stockEnt);
 		
 		ds.put(stockEnt);
+		
+		
+		
+		Gson gs = new Gson();
+		BagOfInfo boi = new BagOfInfo();
+		boi.currentHourVal = currentHourVal;
+		boi.hourlyPointList = (String)stockEnt.getProperty("hourlyPointList");
+		boi.trend = trend;
+		resp.getWriter().write(gs.toJson(boi));
 	}
 	
 	public void printHourlyPointList(Entity stockEnt) {
@@ -187,4 +199,12 @@ public class PingServlet extends HttpServlet {
 		return null;
 	}
 	
+	class BagOfInfo {
+		public String hourlyPointList;
+		public long currentHourVal;
+		public double trend;
+	}
+	
 }
+
+
