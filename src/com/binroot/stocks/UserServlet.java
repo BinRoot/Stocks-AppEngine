@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 
 /**
  * POST /user?id=FB1234&name=Nishy
+ * Server: 
  * @author Nishant
  *
  */
@@ -37,7 +38,8 @@ public class UserServlet extends HttpServlet {
 			Entity e = new Entity("User");
 			e.setProperty("id", id);
 			e.setProperty("name", name);
-			e.setProperty("credits", getConfigEntity(ds).getProperty("startingCredits"));
+			long startingCredits = (Long) getConfigEntity(ds).getProperty("startingCredits");
+			e.setProperty("credits", startingCredits);
 			e.setProperty("lastSeen", Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTime());
 			e.setProperty("stockList", "");
 			e.setProperty("followList", "");
@@ -45,6 +47,9 @@ public class UserServlet extends HttpServlet {
 			e.setProperty("historyList", "");
 			
 			ds.put(e);
+			
+			
+			resp.getWriter().write(startingCredits+"");
 		}
 		else {
 			
@@ -73,11 +78,24 @@ public class UserServlet extends HttpServlet {
 			
 			// output credits, stockList, badges
 			long creditsL = (Long) ue.getProperty("credits");
-			Gson gs = new Gson();
-			resp.getWriter().write(gs.toJson(creditsL));
+			resp.getWriter().write(creditsL+"");
 			
 			
 		}
+	}
+	
+	public Entity getStockEntity(DatastoreService ds, long stockId) {
+		System.out.println("searching for stock "+stockId);
+		Query q = new Query("Stock");
+		PreparedQuery pq = ds.prepare(q);
+		for(Entity e : pq.asIterable()) {
+			System.out.println("found "+e.getProperty("id"));
+			if(((Long)e.getProperty("id"))==stockId) {
+				return e;
+			}
+		}
+		System.out.println("failed to find "+stockId);
+		return null;
 	}
 	
 	public Entity getConfigEntity(DatastoreService ds) {

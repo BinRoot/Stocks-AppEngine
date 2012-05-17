@@ -77,7 +77,7 @@ public class StockServlet extends HttpServlet {
 			ds.put(stockEntity);
 		}
 		else if(operation.equals("r")) { // r = read
-			String userId = (String) req.getParameter("id");
+			String userId = (String) req.getParameter("userId");
 			Entity userEntity = getUserEntity(ds, userId);
 			
 			Gson gst = new Gson();
@@ -85,9 +85,17 @@ public class StockServlet extends HttpServlet {
 			String masterJSON = "{data:[";
 			
 			if(userEntity!=null) {
+				
 				String stockList = (String) userEntity.getProperty("stockList");
+				
+				System.out.println("> stocklist: "+stockList);
+				
 				String[] stockListArr = stockList.split(";");
+				
 				for(int i=0; i<stockListArr.length; i+=2) {
+					if(stockListArr.length<=1) {
+						break;
+					}
 					long stockL = Long.parseLong(stockListArr[i]);
 					long numSharesL = Long.parseLong(stockListArr[i+1]);
 					// print out
@@ -96,6 +104,7 @@ public class StockServlet extends HttpServlet {
 					BagOfInfo bgi = new BagOfInfo();
 					Entity stockEnt = getStockEntity(ds, stockL);
 					String name = (String) stockEnt.getProperty("name");
+					long id = (Long) stockEnt.getProperty("id");
 					long currentHourVal = (Long) stockEnt.getProperty("currentHourVal");
 					String hourlyPointList = (String) stockEnt.getProperty("hourlyPointList");
 					long zeroHourVal = Long.parseLong(hourlyPointList.split(";")[1]);
@@ -103,6 +112,7 @@ public class StockServlet extends HttpServlet {
 					String picture = (String) stockEnt.getProperty("picture");
 
 					bgi.name = name;
+					bgi.id = id;
 					bgi.currentHourVal = currentHourVal;
 					bgi.zeroHourVal = zeroHourVal;
 					bgi.numShares = numSharesL;
@@ -111,12 +121,13 @@ public class StockServlet extends HttpServlet {
 					
 					masterJSON = masterJSON + gst.toJson(bgi) +", ";
 				}
-				masterJSON = masterJSON + "{}]}";
+				
 			}
-			
+			masterJSON = masterJSON + "{}]}";
 			
 			resp.getWriter().append(masterJSON);
 		}
+		
 
 	}
 	
@@ -156,6 +167,7 @@ public class StockServlet extends HttpServlet {
 	
 	class BagOfInfo {
 		public String name;
+		public long id;
 		public long currentHourVal;
 		public long zeroHourVal;
 		public long numShares;

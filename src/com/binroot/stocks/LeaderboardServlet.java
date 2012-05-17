@@ -32,8 +32,8 @@ public class LeaderboardServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/plain");
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		String userId = req.getParameter("id");
-
+		String userId = req.getParameter("userId");
+		String stockId = req.getParameter("stockId");
 		Gson gs = new Gson();
 
 		StringWriter sw = new StringWriter();
@@ -85,6 +85,23 @@ public class LeaderboardServlet extends HttpServlet {
 			jw.beginArray();
 			
 			for(Entity e: pq.asIterable()) {
+				
+				String stockList = (String) e.getProperty("stockList");
+				String [] stockListArr = stockList.split(";");
+				
+				if(stockId != null) {
+					boolean found = false;
+					for(int i=0; i<stockListArr.length; i++) {
+						long stockIdA = Long.parseLong(stockListArr[i]);
+						if(stockIdA==Long.parseLong(stockId)) {
+							found = true;
+						}
+					}
+					if(!found) {
+						continue;
+					}
+				}
+				
 				// compute net worth from e
 				long credits = (Long) e.getProperty("credits");
 				String name = (String) e.getProperty("name");

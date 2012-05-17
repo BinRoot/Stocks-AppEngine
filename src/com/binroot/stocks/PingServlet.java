@@ -30,6 +30,8 @@ public class PingServlet extends HttpServlet {
 		resp.setContentType("text/plain");
 		long stockId = Long.parseLong(req.getParameter("stockId"));
 		
+		String allTimeRequested = (String)req.getParameter("all");
+		
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		
 		Entity stockEnt = getStockEntity(ds, stockId);
@@ -89,7 +91,9 @@ public class PingServlet extends HttpServlet {
 		Gson gs = new Gson();
 		BagOfInfo boi = new BagOfInfo();
 		boi.currentHourVal = currentHourVal;
-		boi.hourlyPointList = (String)stockEnt.getProperty("hourlyPointList");
+		if(allTimeRequested==null)
+			boi.pointList = (String)stockEnt.getProperty("hourlyPointList");
+		else boi.pointList = (String)stockEnt.getProperty("dailyPointList");
 		boi.trend = trend;
 		resp.getWriter().write(gs.toJson(boi));
 	}
@@ -200,7 +204,7 @@ public class PingServlet extends HttpServlet {
 	}
 	
 	class BagOfInfo {
-		public String hourlyPointList;
+		public String pointList;
 		public long currentHourVal;
 		public double trend;
 	}
