@@ -76,7 +76,41 @@ public class LeaderboardServlet extends HttpServlet {
 			
 			resp.getWriter().write(sw.toString());
 		}
+		else if(stockId != null) {
+			// list stock's shareholders with num shares
+			Entity stockEnt = getStockEntity(ds, Long.parseLong(stockId));
+			String shareHolderList = (String)stockEnt.getProperty("shareHolderList");
+			String [] shareHolderListArr = shareHolderList.split(";");
+			
+			jw.beginObject().name("data");
+			jw.beginArray();
+			
+			for(int i=0; i<shareHolderListArr.length; i++) {
+				String shareHolderA = shareHolderListArr[i];
+				Entity userEnt = getUserEntity(ds, shareHolderA);
+				String stockList = (String) userEnt.getProperty("stockList");
+				String [] stockListArr = stockList.split(";");
+				for(int j=0; j<stockListArr.length-1; j+=2) {
+					long stockIdA = Long.parseLong(stockListArr[j]);
+					if(stockIdA == Long.parseLong(stockId)) {
+						int numShares = Integer.parseInt(stockListArr[j+1]);
+						jw.beginObject();
+						jw.name("userId").value(shareHolderA);
+						jw.name("name").value((String) userEnt.getProperty("name"));
+						jw.name("numShares").value(numShares);
+						jw.endObject();
+						break;
+					}
+				}
+			}
+			jw.endArray();
+			jw.endObject();
+			jw.close();
+			
+			resp.getWriter().write(sw.toString());
+		}
 		else {
+			
 			// list global leaderboard
 			Query q = new Query("User");
 			PreparedQuery pq = ds.prepare(q);
@@ -86,6 +120,7 @@ public class LeaderboardServlet extends HttpServlet {
 			
 			for(Entity e: pq.asIterable()) {
 				
+				/*
 				String stockList = (String) e.getProperty("stockList");
 				String [] stockListArr = stockList.split(";");
 				
@@ -101,6 +136,7 @@ public class LeaderboardServlet extends HttpServlet {
 						continue;
 					}
 				}
+				*/
 				
 				// compute net worth from e
 				long credits = (Long) e.getProperty("credits");
